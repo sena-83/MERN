@@ -1,19 +1,86 @@
-//import { useState } from "react";
-//import { useEffect } from "react";
+import { useState } from "react";
 import TopNav from "./TopNav";
+import Modal from "./Modal";
 const registerapi = "http://localhost:8080/api/v1/users/register";
 
 function Registration() {
-  // const [error, setError] = useState(null);
-  //const [isLoaded, setIsLoaded] = useState(false);
-  //const [items, setItems] = useState([]);
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalTitle, setModalTitle] = useState("");
+  const [show, setShow] = useState(false);
+  const [redirectionRequired, setRedirectionRequired] = useState(false);
+
+  function handleRegistration(event) {
+    event.preventDefault();
+    const in_fname = event.target.elements.firstname.value;
+    const in_lname = event.target.elements.lastname.value;
+    const in_email = event.target.elements.email.value;
+    const in_pass = event.target.elements.password.value;
+    const in_confirm_pass = event.target.elements.confirmpassword.value;
+    var flag = false;
+    if (in_pass !== in_confirm_pass) {
+      setModalMessage("Password and confirm password should exactly match");
+      setModalTitle("Error");
+      setShow(true);
+      flag = true;
+    }
+
+    const user = {
+      firstName: in_fname,
+      lastName: in_lname,
+      email: in_email,
+      password: in_pass,
+    };
+
+    if (!flag) {
+      fetch(registerapi, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(user),
+      })
+        .then((res) => res.json())
+        .then(
+          (result) => {
+            if (result.status === "success") {
+              setModalMessage("Registration successfull");
+              setModalTitle("Success");
+              setShow(true);
+              setRedirectionRequired(true);
+              console.log(result.message);
+            } else {
+              setModalMessage(result.message);
+              setModalTitle("Alert");
+              setShow(true);
+              console.log(result.message);
+            }
+          },
+          (error) => {
+            console.log(error);
+            setModalMessage(
+              "System is experiencing some problem, please try again later"
+            );
+            setModalTitle("Error");
+            setShow(true);
+          }
+        );
+    }
+  }
 
   return (
     <div className="container-fluid">
       <TopNav />
-      <div class="container text-left py-3">
-        <div class="row">
-          <div class="col-8">
+      <Modal
+        modalTitle={modalTitle}
+        modalMessage={modalMessage}
+        onClose={() => setShow(false)}
+        redirectionRequired={redirectionRequired}
+        redirectURL="/login"
+        show={show}
+      />
+      <div className="container text-left py-3">
+        <div className="row">
+          <div className="col-8">
             <p className="position:relative fw-bolder text-title">
               Welcome to Shop 24 x 7
             </p>
@@ -35,72 +102,72 @@ function Registration() {
             </p>
           </div>
 
-          <div class="col-4 border bg-light rounded py-3">
+          <div className="col-4 border bg-light rounded py-3">
             <form onSubmit={handleRegistration}>
-              <div class="mb-3">
+              <div className="mb-3">
                 <h5>
                   <b>Registration</b>
                 </h5>
               </div>
-              <div class="mb-3">
-                <label for="firstname" class="form-label">
+              <div className="mb-3">
+                <label htmlFor="firstname" className="form-label">
                   Firstname
                 </label>
                 <input
                   type="text"
-                  class="form-control"
+                  className="form-control"
                   id="firstname"
                   required
                 />
               </div>
               <div className="mb-3">
-                <label for="lastname" class="form-label">
+                <label htmlFor="lastname" className="form-label">
                   Lasttname
                 </label>
                 <input
                   type="text"
-                  class="form-control"
+                  className="form-control"
                   id="lastname"
                   required
                 />
               </div>
-              <div class="mb-3">
-                <label for="email" class="form-label">
+              <div className="mb-3">
+                <label htmlFor="email" className="form-label">
                   Email
                 </label>
                 <input
                   type="email"
-                  class="form-control"
+                  className="form-control"
                   id="email"
                   required
                   aria-describedby="emailHelp"
                 />
-                <div id="emailHelp" class="form-text"></div>
+                <div id="emailHelp" className="form-text"></div>
               </div>
-              <div class="mb-3">
-                <label for="password" class="form-label">
+              <div className="mb-3">
+                <label htmlFor="password" className="form-label">
                   Password
                 </label>
                 <input
                   type="password"
-                  class="form-control"
+                  className="form-control"
                   id="password"
                   required
                 />
               </div>
-              <div class="mb-3">
-                <label for="confirmpassword" class="form-label">
+              <div className="mb-3">
+                <label htmlFor="confirmpassword" className="form-label">
                   Confirm Password
                 </label>
                 <input
                   type="password"
-                  class="form-control"
+                  className="form-control"
                   id="confirmpassword"
                   required
                 />
               </div>
               <div className="d-flex justify-content-end py-3">
-                <button type="submit" id="submit" class="btn btn-primary">
+                <button type="submit" id="submit" className="btn btn-primary">
                   Register
                 </button>
               </div>
@@ -110,52 +177,6 @@ function Registration() {
       </div>
     </div>
   );
-}
-
-function handleRegistration(event) {
-  event.preventDefault();
-  const in_fname = event.target.elements.firstname.value;
-  const in_lname = event.target.elements.lastname.value;
-  const in_email = event.target.elements.email.value;
-  const in_pass = event.target.elements.password.value;
-  const in_confirm_pass = event.target.elements.confirmpassword.value;
-  var flag = false;
-  if (in_pass !== in_confirm_pass) {
-    alert("Password and confirm password should match");
-    flag = true;
-  }
-
-  const user = {
-    firstName: in_fname,
-    lastName: in_lname,
-    email: in_email,
-    password: in_pass,
-  };
-
-  if (!flag) {
-    fetch(registerapi, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(user),
-    })
-      .then((res) => res.json())
-      .then(
-        (result) => {
-          if (result.status === "success") alert("Registration successfull");
-          else
-            alert(
-              "System is experiencing some problem, please try again later"
-            );
-          console.log(result.message);
-        },
-        (error) => {
-          console.log(error);
-          alert("System is experiencing some problem, please try again later");
-        }
-      );
-  }
 }
 
 export default Registration;

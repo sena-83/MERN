@@ -2,6 +2,7 @@ import "./App.css";
 import { useState } from "react";
 import { useEffect } from "react";
 import { NavLink } from "react-router-dom";
+import Modal from "./Modal";
 import axios from "axios";
 
 import TopNav from "./TopNav";
@@ -12,6 +13,10 @@ function ManageOrders() {
   const [error, setError] = useState(null);
   const [items, setItems] = useState([]);
   const [user, setUser] = useState([]);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
+  const [show, setShow] = useState(false);
+  const [redirectionRequired, setRedirectionRequired] = useState(false);
 
   const fetchData = () => {
     const orderlist = axios.get(orderlistapi, {
@@ -45,6 +50,99 @@ function ManageOrders() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  function deleteHandler(oid) {
+    console.log("The delete link was clicked." + oid);
+
+    // Logical Deletion of Order
+    if (oid) {
+      fetch(orderlistapi + "/" + oid, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          token: localStorage.getItem("token"),
+        },
+      })
+        .then((res) => res.json())
+        .then(
+          (result) => {
+            if (result.status === "success") {
+              console.log(result.message);
+              setModalMessage(result.message + "#" + oid);
+              setModalTitle("Success");
+              setShow(true);
+              setRedirectionRequired(true);
+            } else {
+              console.log(
+                "System is experiencing some problem, please try again later"
+              );
+              setModalMessage(
+                "System is experiencing some problem, please try again later"
+              );
+              setModalTitle("Error");
+              setShow(true);
+            }
+          },
+          (error) => {
+            console.log(error);
+            setModalMessage(
+              "System is experiencing some problem, please try again later"
+            );
+            setModalTitle("Error");
+            setShow(true);
+          }
+        );
+    }
+  }
+
+  function updateHandler(oid) {
+    console.log("The update link was clicked." + oid);
+
+    const deliveredorder = {
+      isDelivered: true,
+    };
+
+    if (oid) {
+      fetch(orderlistapi + "/" + oid, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          token: localStorage.getItem("token"),
+        },
+        body: JSON.stringify(deliveredorder),
+      })
+        .then((res) => res.json())
+        .then(
+          (result) => {
+            if (result.status === "success") {
+              console.log(result.message);
+              setModalMessage(result.message + "#" + oid);
+              setModalTitle("Success");
+              setShow(true);
+              setRedirectionRequired(true);
+            } else {
+              console.log(
+                "System is experiencing some problem, please try again later"
+              );
+              setModalMessage(
+                "System is experiencing some problem, please try again later"
+              );
+              setModalTitle("Error");
+              setShow(true);
+            }
+          },
+          (error) => {
+            console.log(error);
+            setModalMessage(
+              "System is experiencing some problem, please try again later"
+            );
+            setModalTitle("Error");
+            setShow(true);
+          }
+        );
+    }
+  }
+
   if (error) {
     setError(error);
     return <div>Error: {error.message}</div>;
@@ -52,6 +150,14 @@ function ManageOrders() {
     return (
       <div className="container-fluid">
         <TopNav />
+        <Modal
+          modalTitle={modalTitle}
+          modalMessage={modalMessage}
+          onClose={() => setShow(false)}
+          redirectionRequired={redirectionRequired}
+          redirectURL="/manageorders"
+          show={show}
+        />
         <div className="row justify-content-center">
           <div className="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8 col-xxl-8 py-4">
             <div className="row justify-content-center">
@@ -100,78 +206,6 @@ function ManageOrders() {
         </div>
       </div>
     );
-  }
-}
-
-function deleteHandler(oid) {
-  console.log("The delete link was clicked." + oid);
-
-  // Logical Deletion of Order
-  if (oid) {
-    fetch(orderlistapi + "/" + oid, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        token: localStorage.getItem("token"),
-      },
-    })
-      .then((res) => res.json())
-      .then(
-        (result) => {
-          if (result.status === "success") {
-            //console.log("Product deleted successfully");
-            console.log(result.message);
-            var delmsg = "Order deleted successfully #" + oid;
-            alert(delmsg);
-          } else {
-            console.log(
-              "System is experiencing some problem, please try again later"
-            );
-          }
-        },
-        (error) => {
-          console.log(error);
-          alert("System is experiencing some problem, please try again later");
-        }
-      );
-  }
-}
-
-function updateHandler(oid) {
-  console.log("The update link was clicked." + oid);
-
-  const deliveredorder = {
-    isDelivered: true,
-  };
-
-  if (oid) {
-    fetch(orderlistapi + "/" + oid, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        token: localStorage.getItem("token"),
-      },
-      body: JSON.stringify(deliveredorder),
-    })
-      .then((res) => res.json())
-      .then(
-        (result) => {
-          if (result.status === "success") {
-            console.log("Product delivered successfully");
-            console.log(result.message);
-            var msg = "Order delivered successfully #" + oid;
-            alert(msg);
-          } else {
-            console.log(
-              "System is experiencing some problem, please try again later"
-            );
-          }
-        },
-        (error) => {
-          console.log(error);
-          alert("System is experiencing some problem, please try again later");
-        }
-      );
   }
 }
 

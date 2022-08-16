@@ -64,7 +64,7 @@ function TopNav() {
                   className="nav-link active"
                   to="/"
                   style={({ isActive }) => ({
-                    color: isActive ? "green" : "grey",
+                    color: isActive ? "green" : "black",
                   })}
                 >
                   Home
@@ -75,7 +75,7 @@ function TopNav() {
                   className="nav-link active"
                   to="/categories"
                   style={({ isActive }) => ({
-                    color: isActive ? "green" : "grey",
+                    color: isActive ? "green" : "black",
                   })}
                 >
                   Categories
@@ -87,7 +87,7 @@ function TopNav() {
                     className="nav-link active"
                     to="/profile"
                     style={({ isActive }) => ({
-                      color: isActive ? "green" : "grey",
+                      color: isActive ? "green" : "black",
                     })}
                   >
                     Profile
@@ -99,7 +99,7 @@ function TopNav() {
                     className="nav-link active"
                     to="/registration"
                     style={({ isActive }) => ({
-                      color: isActive ? "green" : "grey",
+                      color: isActive ? "green" : "black",
                     })}
                   >
                     Registration
@@ -112,7 +112,7 @@ function TopNav() {
                     className="nav-link active"
                     to="/manageorders"
                     style={({ isActive }) => ({
-                      color: isActive ? "green" : "grey",
+                      color: isActive ? "green" : "black",
                     })}
                   >
                     ManageOrder
@@ -127,7 +127,7 @@ function TopNav() {
                     className="nav-link active"
                     to="/manageproducts"
                     style={({ isActive }) => ({
-                      color: isActive ? "green" : "grey",
+                      color: isActive ? "green" : "black",
                     })}
                   >
                     ManageProduct
@@ -164,7 +164,7 @@ function TopNav() {
                 className="nav-link active me-4"
                 to="/login"
                 style={({ isActive }) => ({
-                  color: isActive ? "green" : "grey",
+                  color: isActive ? "green" : "black",
                 })}
               >
                 Login
@@ -185,7 +185,11 @@ function TopNav() {
                 placeholder="Search Products"
                 aria-label="Search"
               />
-              <button className="btn btn-outline-success me-2" type="submit">
+              <button
+                className="btn btn-outline-success me-2"
+                type="button"
+                onClick={doSearch}
+              >
                 Search
               </button>
             </form>
@@ -218,4 +222,12 @@ function logout() {
   let pathUrl = window.location.href;
   window.location.href = pathUrl;
 }
+
+function doSearch() {
+  let history = createHistory();
+  history.push("/categories");
+  let pathUrl = window.location.href;
+  window.location.href = pathUrl;
+}
+
 export default TopNav;

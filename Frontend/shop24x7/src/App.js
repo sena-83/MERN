@@ -10,7 +10,6 @@ import Product from "./Product";
 import ManageProducts from "./ManageProducts";
 import ManageOrders from "./ManageOrders";
 import Categories from "./Categories";
-
 import { CartProvider } from "react-use-cart";
 
 function App() {
@@ -30,6 +29,7 @@ function App() {
             element={<OrderConfirmation />}
           />
           <Route exact path="/addnewproduct" element={<Product />} />
+          <Route exact path="/updateproduct" element={<Product />} />
           <Route exact path="/manageproducts" element={<ManageProducts />} />
           <Route exact path="/manageorders" element={<ManageOrders />} />
           <Route exact path="/categories" element={<Categories />} />
