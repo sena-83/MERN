@@ -24,11 +24,17 @@ const UserSchema = mongoose.Schema({
   profileImage: {
     type: String,
   },
+  phone: {
+    type: Number,
+  },
+  interests: {
+    type: String,
+  },
   address: {
     streetAddress: { type: String },
     city: { type: String },
     state: { type: String },
-    zipcode: { type: String },
+    zipcode: { type: Number },
   },
   createdAt: {
     type: Date,

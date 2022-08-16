@@ -160,13 +160,17 @@ router.post("/v1/profile", auth, async (req, res) => {
   try {
     // request.user is getting fetched from Middleware after token authentication
     const user = await User.findById(req.user.id);
-    const { profileImage, address } = req.body;
-    await user.updateOne({ address: address, profileImage: profileImage });
+    const { interests, phone, address } = req.body;
+    await user.updateOne({
+      address: address,
+      interests: interests,
+      phone: phone,
+    });
 
     const updatedUser = await User.findById(req.user.id);
     res.status(200).json({
       status: "success",
-      message: "user profile been updated successfully",
+      message: "User profile been updated successfully",
       profile: updatedUser,
     });
   } catch (e) {
@@ -204,7 +208,7 @@ router.patch("/v1/profile/image", auth, async (req, res) => {
     const updatedUser = await User.findById(req.user.id);
     res.status(200).json({
       status: "success",
-      message: "profile image updated successfully",
+      message: "Profile image updated successfully",
       profile: updatedUser,
     });
   } catch (e) {
@@ -223,7 +227,7 @@ router.delete("/v1/profile/image", auth, async (req, res) => {
     const updatedUser = await User.findById(req.user.id);
     res.status(200).json({
       status: "success",
-      message: "profile image deleted successfully",
+      message: "Profile image deleted successfully",
       profile: updatedUser,
     });
   } catch (e) {
@@ -249,13 +253,15 @@ router.get("/v1/admin/products", async (req, res) => {
 
 router.get("/v1/products/:PRODUCT_ID", async (req, res) => {
   try {
-    console.log(req.params.PRODUCT_ID);
     const pid = req.params.PRODUCT_ID;
-    const product = await Product.findById(pid);
+    console.log("pid## " + pid);
+
+    const oneproduct = await Product.findOne({ id: pid });
+    console.log("product api" + { oneproduct });
     res.status(200).json({
       status: "success",
       message: " fetched successfully",
-      product: product,
+      product: oneproduct,
     });
   } catch (e) {
     console.log(e);
@@ -263,52 +269,102 @@ router.get("/v1/products/:PRODUCT_ID", async (req, res) => {
   }
 });
 
-router.delete("/v1/admin/products/:id", async (req, res) => {
+router.delete("/v1/admin/products/:id", auth, async (req, res) => {
   try {
     console.log(req.params.id);
     const pid = req.params.id;
 
-    //await Product.deleteOne(pid);
-    //perform logical delete only
-    const product = await Product.findOneAndUpdate(
-      { id: pid },
-      { isDelete: true }
-    );
-    console.log({ product });
+    // request.user is getting fetched from Middleware after token authentication
+    const user = await User.findById(req.user.id);
+    console.log(user.isAdminRole);
 
-    res.status(200).json({
-      status: "success",
-      message: "product deleted successfully",
-    });
+    if (user.isAdminRole) {
+      //await Product.deleteOne(pid);
+      //perform logical delete only
+      const product = await Product.findOneAndUpdate(
+        { id: pid },
+        { isDelete: true }
+      );
+      console.log({ product });
+
+      res.status(200).json({
+        status: "success",
+        message: "Product deleted successfully #",
+      });
+    }
   } catch (e) {
     console.log(e);
     res.send({ message: "Error in deleting Product" });
   }
 });
 
-router.patch("/v1/admin/products/:id", async (req, res) => {
-  try {
-    console.log(req.params.id);
-    const pid = req.params.id;
-    const product = await Product.find({ id: pid });
-
-    const { isTopProduct } = req.body.isTopProduct;
-
-    if (isTopProduct) {
-      await product.updateOne({ isTopProduct: isTopProduct });
+router.patch(
+  "/v1/admin/products/:id",
+  [
+    check("category", "Please enter valid category").not().isEmpty(),
+    check("price", "Please enter a valid price").isNumeric(),
+    check("image", "Please enter valid image").not().isEmpty(),
+    check("description", "Please enter product description").not().isEmpty(),
+  ],
+  auth,
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        errors: errors.array(),
+      });
     }
+    try {
+      console.log(req.params.id);
+      const pid = req.params.id;
+      // request.user is getting fetched from Middleware after token authentication
+      const user = await User.findById(req.user.id);
+      console.log(user.isAdminRole);
+      if (user.isAdminRole) {
+        product = await Product.findOne({ id: pid });
+        console.log({ product });
+        const {
+          category,
+          price,
+          discountPrice,
+          description,
+          image,
+          isTopProduct,
+        } = req.body;
 
-    //const updatedProduct = await Product.findById(pid);
-    res.status(200).json({
-      status: "success",
-      message: "product edited successfully",
-      //profile: updatedUser,
-    });
-  } catch (e) {
-    console.log(e);
-    res.send({ message: "Error in updating Product" });
+        console.log(
+          "category" +
+            category +
+            "price" +
+            price +
+            "discountPrice" +
+            discountPrice +
+            "image" +
+            image +
+            "isTopProduct" +
+            isTopProduct
+        );
+        //const updatedproduct = await Product.findOneAndUpdate(
+        await product.updateOne({
+          category: category,
+          price: price,
+          discountPrice: discountPrice,
+          description: description,
+          image: image,
+          isTopProduct: isTopProduct,
+        });
+        res.status(200).json({
+          status: "success",
+          message: "Product edited successfully",
+        });
+        console.log("updatedproduct" + { product });
+      }
+    } catch (e) {
+      console.log(e);
+      res.send({ message: "Error in updating Product" });
+    }
   }
-});
+);
 
 router.post(
   "/v1/admin/add-new-product",
@@ -319,6 +375,7 @@ router.post(
     check("image", "Please enter valid image").not().isEmpty(),
     check("description", "Please enter product description").not().isEmpty(),
   ],
+  auth,
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -326,44 +383,60 @@ router.post(
         errors: errors.array(),
       });
     }
-    const { name, category, price, discountPrice, description, image } =
-      req.body;
-    const id = Math.random();
-    try {
-      let product = await Product.findOne({
-        name,
-      });
-      if (product) {
-        return res.status(200).json({
-          message: "Product Already Exists",
-        });
-      }
-      product = new Product({
-        id,
+    // request.user is getting fetched from Middleware after token authentication
+    const user = await User.findById(req.user.id);
+    console.log(user.isAdminRole);
+
+    // Admin user only able to add new product in system
+    if (user.isAdminRole) {
+      const {
         name,
         category,
         price,
         discountPrice,
         description,
         image,
-      });
+        isTopProduct,
+      } = req.body;
+      const id = Math.random();
+      try {
+        let product = await Product.findOne({
+          name,
+        });
+        if (product) {
+          return res.status(200).json({
+            status: "duplicate",
+            message: "Product Already Exists",
+          });
+        }
+        product = new Product({
+          id,
+          name,
+          category,
+          price,
+          discountPrice,
+          description,
+          image,
+          isTopProduct,
+        });
 
-      await product.save();
+        await product.save();
 
-      const payload = {
-        product: {
-          id: product.id,
-        },
-      };
+        const payload = {
+          product: {
+            id: product.id,
+          },
+        };
 
-      res.status(200).json({
-        status: "success",
-        message: "Product created successfully",
-        payload,
-      });
-    } catch (err) {
-      console.error(err.message);
-      res.status(500).send("Error in Saving!");
+        res.status(200).json({
+          status: "success",
+          message: "New Product Created Successfully #",
+          payload,
+        });
+      } catch (err) {
+        console.error(err.message);
+        res.status(500).send("Error in Saving!");
+      }
     }
   }
 );
@@ -396,7 +469,7 @@ router.get("/v1/homepage/banner", async (req, res) => {
 
 router.get("/v1/homepage/categories", async (req, res) => {
   try {
-    const product = await Product.find();
+    const product = await Product.find({ isDelete: false });
     res.status(200).json({
       status: "success",
       message: "list of 3 categories fetched successfully",
@@ -433,7 +506,7 @@ router.post("/v1/checkout", auth, async (req, res) => {
 
     res.status(200).json({
       status: "success",
-      message: "order placed successfully",
+      message: "Order placed successfully",
       payload: payload,
     });
   } catch (e) {
@@ -462,7 +535,7 @@ router.post("/v1/guest/checkout", async (req, res) => {
     };
     res.status(200).json({
       status: "success",
-      message: "order placed successfully",
+      message: "Order placed successfully",
       payload: payload,
     });
   } catch (e) {
@@ -490,7 +563,7 @@ router.get("/v1/orders", auth, async (req, res) => {
     }
     res.status(200).json({
       status: "success",
-      message: "list of all orders fetched successfully",
+      message: "List of all orders fetched successfully",
       orders: order,
     });
   } catch (e) {
@@ -519,7 +592,7 @@ router.patch("/v1/orders/:id", auth, async (req, res) => {
 
       res.status(200).json({
         status: "success",
-        message: "order modified successfully",
+        message: "Order delivered successfully",
       });
     } else {
       res.status(401).json({
@@ -555,7 +628,7 @@ router.delete("/v1/orders/:id", auth, async (req, res) => {
 
       res.status(200).json({
         status: "success",
-        message: "order deleted successfully",
+        message: "Order deleted successfully",
       });
     } else {
       res.status(401).json({
