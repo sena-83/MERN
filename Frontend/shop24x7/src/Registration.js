@@ -122,7 +122,7 @@ function Registration() {
               </div>
               <div className="mb-3">
                 <label htmlFor="lastname" className="form-label">
-                  Lasttname
+                  Lastname
                 </label>
                 <input
                   type="text"
